@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Triângulo de tampinhas</title>
+<style>
+:root{--bg:#faf8f4;--fg:#222;--muted:#777;--card:#fff;--line:#d8d2c6;--a:#d9534f;--a2:#f0b3b0;--b:#2f7fc1;--b2:#a9cbe8;--btn:#222;--btnfg:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1b19;--fg:#eee;--muted:#999;--card:#262522;--line:#4a4740;--a:#e8645f;--a2:#7a3b39;--b:#4f9fe0;--b2:#2c4a66;--btn:#eee;--btnfg:#111;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1c1b19;--fg:#eee;--muted:#999;--card:#262522;--line:#4a4740;--a:#e8645f;--a2:#7a3b39;--b:#4f9fe0;--b2:#2c4a66;--btn:#eee;--btnfg:#111;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px;max-width:560px;margin-inline:auto}
+h1{font-size:1.2rem;margin:0 0 4px}
+p.sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;overflow-x:auto}
+svg{display:block;margin:auto;max-width:100%;height:auto}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+button{background:var(--btn);color:var(--btnfg);border:0;border-radius:10px;padding:10px 14px;font-size:.95rem}
+button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+label{display:flex;gap:6px;align-items:center;font-size:.95rem}
+.info{font-size:1rem;line-height:1.6}
+.info b{font-variant-numeric:tabular-nums}
+.mn{color:var(--muted);font-size:.85rem;margin-top:6px}
+</style>
+</head>
+<body>
+<h1>Triângulo de tampinhas</h1>
+<p class="sub">Toque nos espaços para colocar ou tirar tampinhas.</p>
+<div class="card"><svg id="s" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div class="row">
+<button id="minus" class="ghost">− linha</button>
+<button id="plus" class="ghost">+ linha</button>
+<button id="fill">Preencher</button>
+<button id="clear" class="ghost">Limpar</button>
+</div>
+<div class="row"><label><input type="checkbox" id="rect"> Modo retângulo (2 triângulos)</label></div>
+<div class="info" id="info"></div>
+<div class="mn">Macete: dois triângulos iguais = um retângulo n × (n+1), então T(n) é a metade.</div>
+<script>
+var n=5,filled={},rect=false,D=44,R=18;
+var svg=document.getElementById('s'),NS='http://www.w3.org/2000/svg';
+function key(i,c){return i+','+c}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function fillAll(){filled={};for(var i=0;i<n;i++)for(var c=0;c<=i;c++)filled[key(i,c)]=1}
+function el(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e}
+function cap(x,y,col,col2){
+  var g=el('g',{});
+  g.appendChild(el('circle',{cx:x,cy:y,r:R,fill:col,stroke:col2,'stroke-width':3}));
+  g.appendChild(el('circle',{cx:x,cy:y,r:R-6,fill:'none',stroke:col2,'stroke-width':1.5,'stroke-dasharray':'3 3'}));
+  return g;
+}
+function render(){
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  var W=Math.max(n+1,3)*D+20,H=(rect?n:n)*D+30;
+  if(!rect)H=(n-1)*D*0.866+R*2+20;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.setAttribute('width',W);
+  var A=css('--a'),A2=css('--a2'),B=css('--b'),B2=css('--b2'),L=css('--line');
+  var count=0;
+  for(var i=0;i<n;i++){
+    var total=rect?n+1:i+1;
+    for(var c=0;c<total;c++){
+      var x,y;
+      if(rect){x=10+D/2+c*D+ (W-20-(n+1)*D)/2;y=R+8+i*D}
+      else{x=W/2+(c-i/2)*D;y=R+10+i*D*0.866}
+      var isA=c<=i;
+      if(rect&&!isA){svg.appendChild(cap(x,y,B,B2));continue}
+      var k=key(i,c),on=!!filled[k];
+      var g;
+      if(on){g=cap(x,y,A,A2);count++}
+      else{g=el('circle',{cx:x,cy:y,r:R,fill:'transparent',stroke:L,'stroke-width':2,'stroke-dasharray':'4 4'})}
+      g.style.cursor='pointer';
+      (function(k){g.addEventListener('click',function(){if(filled[k])delete filled[k];else filled[k]=1;render()})})(k);
+      svg.appendChild(g);
+    }
+  }
+  var T=n*(n+1)/2,parts=[];
+  for(var j=1;j<=n;j++)parts.push(j);
+  var info='Linhas: <b>'+n+'</b> · Tampinhas: <b>'+count+'</b> de <b>'+T+'</b><br>T('+n+') = '+parts.join(' + ')+' = <b>'+T+'</b>';
+  if(rect)info+='<br>Retângulo: '+n+' × '+(n+1)+' = <b>'+(n*(n+1))+'</b> → metade = <b>'+T+'</b>';
+  document.getElementById('info').innerHTML=info;
+}
+document.getElementById('plus').onclick=function(){if(n<12){n++;render()}};
+document.getElementById('minus').onclick=function(){if(n>1){for(var c=0;c<n;c++)delete filled[key(n-1,c)];n--;render()}};
+document.getElementById('fill').onclick=function(){fillAll();render()};
+document.getElementById('clear').onclick=function(){filled={};render()};
+document.getElementById('rect').onchange=function(e){rect=e.target.checked;if(rect)fillAll();render()};
+fillAll();render();
+</script>
+</body>
+</html>
