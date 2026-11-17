@@ -34,9 +34,9 @@ label{display:flex;gap:6px;align-items:center;font-size:.95rem}
 <button id="fill">Preencher</button>
 <button id="clear" class="ghost">Limpar</button>
 </div>
-<div class="row"><label><input type="checkbox" id="rect"> Modo retângulo (2 triângulos)</label></div>
+<div class="row"><label><input type="checkbox" id="rect"> Modo quadrado (x²)</label></div>
 <div class="info" id="info"></div>
-<div class="mn">Macete: dois triângulos iguais = um retângulo n × (n+1), então T(n) é a metade.</div>
+<div class="mn">Macete: triângulo = x(x+1)/2; dois triângulos vizinhos formam o quadrado: T(x) + T(x−1) = x².</div>
 <script>
 var n=5,filled={},rect=false,D=44,R=18;
 var svg=document.getElementById('s'),NS='http://www.w3.org/2000/svg';
@@ -52,17 +52,17 @@ function cap(x,y,col,col2){
 }
 function render(){
   while(svg.firstChild)svg.removeChild(svg.firstChild);
-  var W=Math.max(n+1,3)*D+20,H=(rect?n:n)*D+30;
-  if(!rect)H=(n-1)*D*0.866+R*2+20;
+  var W=Math.max(n+1,3)*D+20,H=(n-1)*D*0.866+R*2+20;
+  if(rect)H=(n-1)*D+R*2+16;
   svg.setAttribute('viewBox','0 0 '+W+' '+H);
   svg.setAttribute('width',W);
   var A=css('--a'),A2=css('--a2'),B=css('--b'),B2=css('--b2'),L=css('--line');
   var count=0;
   for(var i=0;i<n;i++){
-    var total=rect?n+1:i+1;
+    var total=rect?n:i+1;
     for(var c=0;c<total;c++){
       var x,y;
-      if(rect){x=10+D/2+c*D+ (W-20-(n+1)*D)/2;y=R+8+i*D}
+      if(rect){x=W/2+(c-(n-1)/2)*D;y=R+8+i*D}
       else{x=W/2+(c-i/2)*D;y=R+10+i*D*0.866}
       var isA=c<=i;
       if(rect&&!isA){svg.appendChild(cap(x,y,B,B2));continue}
@@ -75,10 +75,9 @@ function render(){
       svg.appendChild(g);
     }
   }
-  var T=n*(n+1)/2,parts=[];
-  for(var j=1;j<=n;j++)parts.push(j);
-  var info='Linhas: <b>'+n+'</b> · Tampinhas: <b>'+count+'</b> de <b>'+T+'</b><br>T('+n+') = '+parts.join(' + ')+' = <b>'+T+'</b>';
-  if(rect)info+='<br>Retângulo: '+n+' × '+(n+1)+' = <b>'+(n*(n+1))+'</b> → metade = <b>'+T+'</b>';
+  var T=n*(n+1)/2;
+  var info='x = <b>'+n+'</b> · Tampinhas: <b>'+count+'</b> de <b>'+T+'</b><br>T(x) = x(x+1)/2 = '+n+'×'+(n+1)+'/2 = <b>'+T+'</b>';
+  if(rect)info+='<br>x² = '+n+'² = <b>'+(n*n)+'</b><br>T(x) + T(x−1) = '+T+' + '+(T-n)+' = <b>'+(n*n)+'</b>';
   document.getElementById('info').innerHTML=info;
 }
 document.getElementById('plus').onclick=function(){if(n<12){n++;render()}};
